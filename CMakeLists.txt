@@ -115,7 +115,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # main project
 # this should appear after setting the architecture
 project(phd2)
-enable_testing()
+#enable_testing()
 
 
 #################################################################################
