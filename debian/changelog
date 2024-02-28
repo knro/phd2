@@ -1,3 +1,9 @@
+phd2 (2.6.13) stable; urgency=low
+
+  * fix a problem where the camera settings are not displayed properly on some computers
+
+ -- Jasem Mutlaq <mutlaqja@ikarustech.com>  Wed, 28 Feb 2024 10:00:00 +0300
+
 phd2 (2.6.11) stable; urgency=low
 
   * bump rev to 2.6.11
