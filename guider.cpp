@@ -468,7 +468,7 @@ bool Guider::PaintHelper(wxAutoBufferedPaintDCBase& dc, wxMemoryDC& memDC)
             // - The image is either too big
             // - The image is so small that at least one dimension is less
             //   than half the width of the window or
-            // - The user has requsted rescaling
+            // - The user has requested rescaling
 
             if (xScaleFactor > 1.0 || yScaleFactor > 1.0 ||
                 xScaleFactor < 0.45 || yScaleFactor < 0.45 || m_scaleImage)
@@ -900,7 +900,9 @@ bool Guider::MoveLockPosition(const PHD_Point& mountDeltaArg)
         m_avgDistanceRA += distRA;
         m_avgDistanceLongRA += distRA;
 
-        if (IsFastRecenterEnabled())
+        // Zero-length dithers result in div-by-zero in calculation of 'f'.  We can still allow zero-length dithers as a way of
+        // triggering a settling period if we temporarily ignore the 'fast re-center' option
+        if (IsFastRecenterEnabled() && dist != 0)
         {
             m_ditherRecenterRemaining.SetXY(fabs(mountDelta.X), fabs(mountDelta.Y));
             m_ditherRecenterDir.x = mountDelta.X < 0.0 ? 1 : -1;
@@ -1070,13 +1072,13 @@ void Guider::UpdateCurrentDistance(double distance, double distanceRA)
         {
             // initialize smoothed running avg with mean of first 10 pts
             m_avgDistanceLong += (distance - m_avgDistanceLong) / m_avgDistanceCnt;
-            m_avgDistanceLongRA += (distance - m_avgDistanceLongRA) / m_avgDistanceCnt;
+            m_avgDistanceLongRA += (distanceRA - m_avgDistanceLongRA) / m_avgDistanceCnt;
         }
         else
         {
             static double const alpha_long = .045; // heavy smoothing, low weighting for latest sample .045 => 15 frame half-life
             m_avgDistanceLong += alpha_long * (distance - m_avgDistanceLong);
-            m_avgDistanceLongRA += alpha_long * (distance - m_avgDistanceLongRA);
+            m_avgDistanceLongRA += alpha_long * (distanceRA - m_avgDistanceLongRA);
         }
     }
     else
