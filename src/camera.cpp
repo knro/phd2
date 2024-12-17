@@ -1185,8 +1185,14 @@ void CameraConfigDialogCtrlSet::UnloadValues()
 
     if (m_pCamera->HasSubframes)
     {
-        m_pCamera->UseSubframes = m_pUseSubframes->GetValue();
-        pConfig->Profile.SetBoolean("/camera/UseSubframes", m_pCamera->UseSubframes);
+        bool oldVal = m_pCamera->UseSubframes;
+        bool newVal = m_pUseSubframes->GetValue();
+        m_pCamera->UseSubframes = newVal;
+        pConfig->Profile.SetBoolean("/camera/UseSubframes", newVal);
+        // MultiStar can't track secondary star locations during periods when subframes are used
+        if (oldVal && !newVal)
+            if (pFrame->pGuider->GetMultiStarMode())
+                pFrame->pGuider->SetMultiStarMode(true); // Will force a refresh of secondary stars
     }
 
     if (m_pCamera->HasGainControl)
@@ -1241,7 +1247,10 @@ void CameraConfigDialogCtrlSet::UnloadValues()
 
     double oldPxSz = m_pCamera->GetCameraPixelSize();
     double newPxSz = m_pPixelSize->GetValue();
-    if (oldPxSz != newPxSz)
+    if (oldPxSz != newPxSz &&
+        pFrame->pAdvancedDialog->PercentChange(oldPxSz, newPxSz) >
+            5.0) // Avoid rounding problems with floating point equality test; don't clear
+                 // calibration for inconsequential changes
         pFrame->pAdvancedDialog->FlagImageScaleChange();
     m_pCamera->SetCameraPixelSize(m_pPixelSize->GetValue());
 
